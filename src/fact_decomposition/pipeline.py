@@ -1,37 +1,31 @@
-from typing import List, Dict, Any
+from src.fact_decomposition.extractors.extractors import FactExtractor
+from src.fact_decomposition.verifiers.fact_comparator import (
+    FactComparator,
+    FactAnalysis,
+)
+from src.fact_decomposition.utils.document_extractor import DocumentExtractor
+
 
 class FactDecompositionPipeline:
     """Main pipeline class for fact decomposition and verification."""
-    
-    def __init__(self, extractor=None, verifier=None):
-        self.extractor = extractor
-        self.verifier = verifier
-    
-    def process_text(self, text: str) -> Dict[str, Any]:
+
+    def __init__(self, model: str = "gpt-4o"):
+        self.extractor = FactExtractor(model)
+        self.comparator = FactComparator(model)
+        self.doc_extractor = DocumentExtractor()
+
+    def process_text(self, input_text: str, output_text: str) -> FactAnalysis:
         """
-        Process input text through the fact decomposition pipeline.
-        
+        Process input and output text through the fact decomposition pipeline.
+
         Args:
-            text: Input text to process
-            
+            input_text: Source/reference text or path to document
+            output_text: Generated text to analyze
+
         Returns:
-            Dictionary containing extracted facts and their verification status
+            FactAnalysis containing common facts, hallucinations, missing facts,
+            and highlighted output
         """
-        facts = self.extract_facts(text)
-        verified_facts = self.verify_facts(facts)
-        return {
-            "facts": facts,
-            "verification": verified_facts
-        }
-    
-    def extract_facts(self, text: str) -> List[str]:
-        """Extract facts from input text."""
-        if self.extractor is None:
-            raise ValueError("No fact extractor configured")
-        return self.extractor.extract(text)
-    
-    def verify_facts(self, facts: List[str]) -> List[Dict[str, Any]]:
-        """Verify extracted facts."""
-        if self.verifier is None:
-            raise ValueError("No fact verifier configured")
-        return self.verifier.verify(facts)
+        input_markdown = self.doc_extractor.extract_to_markdown(input_text)
+        input_facts = self.extractor.extract(input_markdown)
+        return self.comparator.analyze_facts(input_facts, output_text)
