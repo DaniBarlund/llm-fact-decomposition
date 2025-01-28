@@ -25,3 +25,5 @@ Homepage = "https://github.com/DaniBarlund/llm-fact-decomposition"
 [tool.poetry.dependencies]
 markitdown = "^0.0.1a3"
 openai = "^1.60.1"
+fastapi = "^0.115.7"
+uvicorn = "^0.34.0"
